@@ -1,0 +1,778 @@
+{
+  "info": {
+    "name": "Task Tracker API - Multitenant",
+    "description": "Complete API collection for Task Tracker with multitenant testing scenarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "tenant1_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenant2_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenant1_admin_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenant2_admin_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenant1_task_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tenant2_task_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. AUTH - Tenant 1 Setup",
+      "item": [
+        {
+          "name": "Signup Tenant 1 Admin",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tenant 1 Admin\",\n  \"email\": \"admin1@tenant1.com\",\n  \"password\": \"password123\",\n  \"role\": \"ADMIN\",\n  \"tenantId\": \"tenant-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signup Tenant 1 Manager",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tenant 1 Manager\",\n  \"email\": \"manager1@tenant1.com\",\n  \"password\": \"password123\",\n  \"role\": \"MANAGER\",\n  \"tenantId\": \"tenant-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signup Tenant 1 Member",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tenant 1 Member\",\n  \"email\": \"member1@tenant1.com\",\n  \"password\": \"password123\",\n  \"role\": \"MEMBER\",\n  \"tenantId\": \"tenant-1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Tenant 1 Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"tenant1_token\", jsonData.token);",
+                  "pm.collectionVariables.set(\"tenant1_admin_id\", jsonData.user.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin1@tenant1.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. AUTH - Tenant 2 Setup",
+      "item": [
+        {
+          "name": "Signup Tenant 2 Admin",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tenant 2 Admin\",\n  \"email\": \"admin2@tenant2.com\",\n  \"password\": \"password123\",\n  \"role\": \"ADMIN\",\n  \"tenantId\": \"tenant-2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signup Tenant 2 Manager",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tenant 2 Manager\",\n  \"email\": \"manager2@tenant2.com\",\n  \"password\": \"password123\",\n  \"role\": \"MANAGER\",\n  \"tenantId\": \"tenant-2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Signup Tenant 2 Member",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tenant 2 Member\",\n  \"email\": \"member2@tenant2.com\",\n  \"password\": \"password123\",\n  \"role\": \"MEMBER\",\n  \"tenantId\": \"tenant-2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Tenant 2 Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"tenant2_token\", jsonData.token);",
+                  "pm.collectionVariables.set(\"tenant2_admin_id\", jsonData.user.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin2@tenant2.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. TASKS - Tenant 1 Operations",
+      "item": [
+        {
+          "name": "Create Task - Tenant 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"tenant1_task_id\", jsonData.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tenant 1 Task\",\n  \"description\": \"This is a task for tenant 1\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-12-31\",\n  \"assignedToId\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Tasks - Tenant 1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task by ID - Tenant 1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant1_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant1_task_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Task - Tenant 1",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Tenant 1 Task\",\n  \"description\": \"Updated description\",\n  \"priority\": \"MEDIUM\",\n  \"status\": \"IN_PROGRESS\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant1_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant1_task_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. TASKS - Tenant 2 Operations",
+      "item": [
+        {
+          "name": "Create Task - Tenant 2",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"tenant2_task_id\", jsonData.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Tenant 2 Task\",\n  \"description\": \"This is a task for tenant 2\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-12-31\",\n  \"assignedToId\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Tasks - Tenant 2",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task by ID - Tenant 2",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant2_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant2_task_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. MULTITENANT ISOLATION TESTS",
+      "item": [
+        {
+          "name": "TEST: Tenant 1 cannot access Tenant 2 task",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant2_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant2_task_id}}"]
+            },
+            "description": "This should return 404 - Task not found (tenant isolation)"
+          },
+          "response": []
+        },
+        {
+          "name": "TEST: Tenant 2 cannot access Tenant 1 task",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant1_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant1_task_id}}"]
+            },
+            "description": "This should return 404 - Task not found (tenant isolation)"
+          },
+          "response": []
+        },
+        {
+          "name": "TEST: Tenant 1 users only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Should only return users with tenantId = tenant-1"
+          },
+          "response": []
+        },
+        {
+          "name": "TEST: Tenant 2 users only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            },
+            "description": "Should only return users with tenantId = tenant-2"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. COMMENTS - Tenant 1",
+      "item": [
+        {
+          "name": "Add Comment - Tenant 1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a comment from tenant 1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant1_task_id}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant1_task_id}}", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comments - Tenant 1",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant1_task_id}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant1_task_id}}", "comments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. COMMENTS - Tenant 2",
+      "item": [
+        {
+          "name": "Add Comment - Tenant 2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"This is a comment from tenant 2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant2_task_id}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant2_task_id}}", "comments"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comments - Tenant 2",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant2_task_id}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant2_task_id}}", "comments"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. USER MANAGEMENT - Admin Only",
+      "item": [
+        {
+          "name": "Get All Users - Tenant 1 Admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Role - Tenant 1 Admin",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"MANAGER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/3/role",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "users", "3", "role"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. ROLE-BASED ACCESS TESTS",
+      "item": [
+        {
+          "name": "TEST: Member cannot create task",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Should fail\",\n  \"description\": \"Member cannot create\",\n  \"priority\": \"HIGH\",\n  \"dueDate\": \"2026-12-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks"]
+            },
+            "description": "Login as member first, then test. Should fail with 403 Forbidden"
+          },
+          "response": []
+        },
+        {
+          "name": "TEST: Member can only update status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DONE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant1_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant1_task_id}}"]
+            },
+            "description": "Login as member first. Should only allow status update"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. CLEANUP",
+      "item": [
+        {
+          "name": "Delete Task - Tenant 1",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant1_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant1_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant1_task_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Task - Tenant 2",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{tenant2_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/tasks/{{tenant2_task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tasks", "{{tenant2_task_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

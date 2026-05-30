@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(MEMBER)
+  tenantId      String
+  managerId     Int?
+  createdAt     DateTime  @default(now())
+  comments      Comment[]
+  assignedTasks Task[]    @relation("AssignedTasks")
+  createdTasks  Task[]    @relation("CreatedTasks")
+  manager       User?     @relation("ManagedUsers", fields: [managerId], references: [id])
+  teamMembers   User[]    @relation("ManagedUsers")
+}
+
+model Task {
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String
+  priority     String
+  status       Status    @default(TODO)
+  dueDate      DateTime
+  tenantId     String
+  createdById  Int
+  assignedToId Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  comments     Comment[]
+  assignedTo   User      @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdBy    User      @relation("CreatedTasks", fields: [createdById], references: [id])
+}
+
+model Comment {
+  id          Int      @id @default(autoincrement())
+  message     String
+  tenantId    String
+  taskId      Int
+  createdById Int
+  createdAt   DateTime @default(now())
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  task        Task     @relation(fields: [taskId], references: [id])
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  MEMBER
+}
+
+enum Status {
+  TODO
+  IN_PROGRESS
+  DONE
+}
