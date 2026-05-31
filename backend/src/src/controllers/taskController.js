@@ -60,6 +60,18 @@ const createTask = async (req, res) => {
 
         tenantId: req.user.tenantId,
       },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        priority: true,
+        status: true,
+        dueDate: true,
+        createdById: true,
+        assignedToId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     res.status(201).json(task);
@@ -80,11 +92,35 @@ const getTasks = async (req, res) => {
           assignedToId: req.user.id,
           tenantId: req.user.tenantId,
         },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          priority: true,
+          status: true,
+          dueDate: true,
+          createdById: true,
+          assignedToId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
     } else {
       tasks = await prisma.task.findMany({
         where: {
           tenantId: req.user.tenantId,
+        },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          priority: true,
+          status: true,
+          dueDate: true,
+          createdById: true,
+          assignedToId: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
     }
@@ -103,6 +139,18 @@ const getTaskById = async (req, res) => {
       where: {
         id: parseInt(req.params.id),
         tenantId: req.user.tenantId,
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        priority: true,
+        status: true,
+        dueDate: true,
+        createdById: true,
+        assignedToId: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -149,8 +197,19 @@ const updateTask = async (req, res) => {
       where: {
         id: taskId,
       },
-
       data: updatedData,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        priority: true,
+        status: true,
+        dueDate: true,
+        createdById: true,
+        assignedToId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     res.status(200).json(updatedTask);

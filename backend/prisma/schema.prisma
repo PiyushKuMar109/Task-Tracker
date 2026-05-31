@@ -7,6 +7,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Tenant {
+  id        String   @id @default(cuid())
+  tenantId  String   @unique
+  name      String
+  users     User[]
+  createdAt DateTime @default(now())
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   name          String
@@ -14,6 +22,7 @@ model User {
   password      String
   role          Role      @default(MEMBER)
   tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [tenantId])
   managerId     Int?
   createdAt     DateTime  @default(now())
   comments      Comment[]

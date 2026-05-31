@@ -31,6 +31,19 @@ const addComment = async (req, res) => {
 
         tenantId: req.user.tenantId,
       },
+      select: {
+        id: true,
+        message: true,
+        taskId: true,
+        createdById: true,
+        createdAt: true,
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     res.status(201).json(comment);
@@ -48,6 +61,22 @@ const getComments = async (req, res) => {
         taskId: parseInt(req.params.id),
 
         tenantId: req.user.tenantId,
+      },
+      select: {
+        id: true,
+        message: true,
+        taskId: true,
+        createdById: true,
+        createdAt: true,
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
       },
     });
 

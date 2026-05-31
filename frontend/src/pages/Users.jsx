@@ -1,4 +1,6 @@
+
 import React, { useEffect, useState, useContext } from "react";
+
 
 import API from "../api/axios";
 
@@ -12,7 +14,7 @@ export default function Users() {
   const { user } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "MEMBER", tenantId: user?.tenantId || "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "MEMBER" });
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,7 +48,7 @@ export default function Users() {
     setError("");
     try {
       await API.post("/users", form);
-      setForm({ name: "", email: "", password: "", role: "MEMBER", tenantId: user?.tenantId || "" });
+      setForm({ name: "", email: "", password: "", role: "MEMBER" });
       fetchUsers();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to add user");
@@ -245,16 +247,6 @@ export default function Users() {
                   className="w-full bg-white border border-[#e5e7eb] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#5a4bcc]" 
                 />
               </div>
-              <div className="flex-1 min-w-[150px]">
-                <label className="block text-xs text-[#666] mb-1">Tenant ID</label>
-                <input 
-                  name="tenantId" 
-                  value={form.tenantId} 
-                  onChange={handleInputChange} 
-                  placeholder="Optional" 
-                  className="w-full bg-white border border-[#e5e7eb] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#5a4bcc]" 
-                />
-              </div>
               <div className="w-[150px]">
                 <label className="block text-xs text-[#666] mb-1">Role</label>
                 <select 
@@ -334,11 +326,6 @@ export default function Users() {
                         ID
                       </th>
 
-                      {user?.role === "ADMIN" && (
-                        <th className="text-left px-5 py-4 text-xs text-[#666]">
-                          TENANT
-                        </th>
-                      )}
 
                       {user?.role === "ADMIN" && (
                         <th className="text-left px-5 py-4 text-xs text-[#666]">
@@ -394,9 +381,6 @@ export default function Users() {
                           </span>
                         </td>
                         <td className="px-5 py-4 text-[#666] text-sm">#{u.id}</td>
-                        {user?.role === "ADMIN" && (
-                          <td className="px-5 py-4 text-[#666] text-sm">{u.tenantId || "N/A"}</td>
-                        )}
                         {user?.role === "ADMIN" && (
                           <td className="px-5 py-4 text-[#666] text-sm">{u.manager?.name || "N/A"}</td>
                         )}

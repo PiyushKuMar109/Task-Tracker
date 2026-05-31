@@ -43,6 +43,16 @@ const signup = async (req, res) => {
     // Auto-generate tenantId if not provided
     const finalTenantId = tenantId || generateTenantId();
 
+    // Ensure tenant exists before creating user
+    await prisma.tenant.upsert({
+      where: { tenantId: finalTenantId },
+      update: {},
+      create: {
+        tenantId: finalTenantId,
+        name: `${name}'s Workspace`,
+      },
+    });
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -52,6 +62,12 @@ const signup = async (req, res) => {
         password: hashedPassword,
         role: finalRole,
         tenantId: finalTenantId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
       },
     });
 

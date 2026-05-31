@@ -12,7 +12,6 @@ const getUsers = async (req, res) => {
           name: true,
           email: true,
           role: true,
-          tenantId: true,
         },
       });
     } else if (req.user.role === "ADMIN") {
@@ -26,7 +25,6 @@ const getUsers = async (req, res) => {
           name: true,
           email: true,
           role: true,
-          tenantId: true,
           managerId: true,
           manager: {
             select: {
@@ -123,7 +121,7 @@ const addUser = async (req, res) => {
         tenantId: finalTenantId,
         managerId,
       },
-      select: { id: true, name: true, email: true, role: true, tenantId: true },
+      select: { id: true, name: true, email: true, role: true, managerId: true },
     });
     res.status(201).json({ message: "User created", user });
   } catch (error) {
@@ -185,7 +183,6 @@ const getUsersForAssignment = async (req, res) => {
           name: true,
           email: true,
           role: true,
-          tenantId: true,
         },
       });
     } else if (req.user.role === "ADMIN") {
@@ -199,7 +196,6 @@ const getUsersForAssignment = async (req, res) => {
           name: true,
           email: true,
           role: true,
-          tenantId: true,
         },
       });
     } else if (req.user.role === "MANAGER") {

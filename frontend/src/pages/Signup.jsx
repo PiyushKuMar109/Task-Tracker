@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 import API from "../api/axios";
+import { generateTenantId, generateTenantIdFromName } from "../utils/tenantGenerator";
 import { toast } from "react-toastify";
 import { BriefcaseBusiness } from "lucide-react";
 
@@ -27,9 +28,15 @@ export default function Signup() {
     e.preventDefault();
 
     try {
+      // Auto-generate tenantId if not provided
+      let tenantId = formData.tenantId?.trim();
+      if (!tenantId) {
+        tenantId = generateTenantIdFromName(formData.name);
+      }
+      const payload = { ...formData, tenantId };
       await API.post(
         "/auth/signup",
-        formData
+        payload
       );
 
       toast.success(
