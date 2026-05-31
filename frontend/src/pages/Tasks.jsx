@@ -17,6 +17,7 @@ export default function Tasks() {
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -75,6 +76,7 @@ export default function Tasks() {
         dueDate: "",
         assignedToId: "",
       });
+      setShowCreateForm(false);
     } catch (error) {
       toast.error(
         error.response?.data?.message ||
@@ -140,7 +142,8 @@ export default function Tasks() {
           {/* CREATE TASK */}
 
           {(user?.role === "ADMIN" ||
-            user?.role === "MANAGER") && (
+            user?.role === "MANAGER") &&
+            showCreateForm && (
 
             <div className="bg-white border border-[#e5e7eb] rounded-[10px] p-5 mb-6">
 
@@ -244,9 +247,19 @@ export default function Tasks() {
 
           <div className="bg-white border border-[#e5e7eb] rounded-[10px] p-5 mb-6">
 
-            <p className="text-[10px] uppercase tracking-[1.2px] text-[#555] mb-4">
-              Filters
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-[10px] uppercase tracking-[1.2px] text-[#555]">
+                Filters
+              </p>
+              {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
+                <button
+                  onClick={() => setShowCreateForm(!showCreateForm)}
+                  className="bg-[#5a4bcc] hover:bg-[#6b5ce7] px-4 py-2 rounded-md text-sm font-medium transition text-white"
+                >
+                  {showCreateForm ? "Cancel" : "Create Task"}
+                </button>
+              )}
+            </div>
 
             <div className="grid md:grid-cols-3 gap-4">
 
