@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 
 import { AuthContext } from "../context/AuthContext";
@@ -8,22 +8,42 @@ import {
   ClipboardList,
   Users,
   BriefcaseBusiness,
+  Calendar,
+  LogOut,
+  Settings,
 } from "lucide-react";
+
+import Pomodoro from "./Pomodoro";
+import WorkspaceChat from "./WorkspaceChat";
 
 export default function Sidebar({
   sidebarOpen,
   setSidebarOpen,
 }) {
-  const { user } = useContext(AuthContext);
-
+  const { user, logout } = useContext(AuthContext);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
+
+  const getNavLinkClass = (path) => {
+    const isActive = location.pathname === path;
+    return `flex items-center gap-3 px-[10px] py-[8px] text-[12px] rounded-lg font-medium transition-colors ${
+      isActive
+        ? "bg-[#ede9fe] text-[#4f46e5]"
+        : "text-[#6b7280] hover:bg-[#ede9fe]/50 hover:text-[#4f46e5]"
+    }`;
+  };
 
   return (
     <>
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          className="fixed inset-0 bg-slate-900/40 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -32,9 +52,9 @@ export default function Sidebar({
       <aside
         className={`
         fixed lg:static top-0 left-0 z-50
-        w-[220px] h-screen
-        bg-white
-        border-r border-[#e5e7eb]
+        w-[200px] min-w-[200px] h-screen
+        bg-[#f8f8fb]
+        border-r-hairline
         flex flex-col justify-between
         transition-transform duration-300
 
@@ -47,89 +67,97 @@ export default function Sidebar({
       >
         {/* Top Branding */}
         <div>
-          <div className="px-5 py-5 border-b border-[#e5e7eb]">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-[#5a4bcc] flex items-center justify-center">
-                <BriefcaseBusiness
-                  size={18}
-                  className="text-white"
-                />
+          <div className="px-4 py-[13px] border-b-hairline bg-[#f8f8fb]">
+            <div className="flex items-center gap-2">
+              <div className="w-[28px] h-[28px] rounded-lg bg-[#4f46e5] flex items-center justify-center text-white shrink-0">
+                <BriefcaseBusiness size={14} />
               </div>
 
-              <div>
-                <h1 className="font-mono text-[14px] font-semibold tracking-wider text-[#1a1a1a]">
-                  TASK TRACKER
+              <div className="overflow-hidden">
+                <h1 className="text-[12px] font-semibold text-[#1e1b4b] leading-tight truncate">
+                  Task Tracker
                 </h1>
 
-                <p className="text-[10px] text-[#555] uppercase tracking-widest">
-                  Productivity
+                <p className="font-mono-data text-[9px] uppercase text-[#4338ca] leading-none mt-0.5">
+                  Workspace
                 </p>
+
               </div>
             </div>
           </div>
 
           {/* Navigation */}
-          <nav className="p-3 flex flex-col gap-1 mt-2">
-            <Link
-              to="/dashboard"
-              className={`flex items-center gap-3 px-3 py-3 text-[13px] rounded-lg border-l-[3px] transition-all duration-200 ${
-                location.pathname === "/dashboard"
-                  ? "border-[#5a4bcc] bg-[rgba(90,75,204,0.08)] text-[#1a1a1a]"
-                  : "border-transparent text-[#666] hover:text-[#1a1a1a] hover:bg-[#f3f4f6]"
-              }`}
-            >
-              <LayoutDashboard size={18} />
+          <nav className="p-3 flex flex-col gap-1">
+            <span className="section-label px-2.5 mb-1.5 block mt-2">
+              Workspace
+            </span>
+
+            <Link to="/dashboard" className={getNavLinkClass("/dashboard")}>
+              <LayoutDashboard size={15} />
               Dashboard
             </Link>
 
-            <Link
-              to="/tasks"
-              className={`flex items-center gap-3 px-3 py-3 text-[13px] rounded-lg border-l-[3px] transition-all duration-200 ${
-                location.pathname === "/tasks"
-                  ? "border-[#5a4bcc] bg-[rgba(90,75,204,0.08)] text-[#1a1a1a]"
-                  : "border-transparent text-[#666] hover:text-[#1a1a1a] hover:bg-[#f3f4f6]"
-              }`}
-            >
-              <ClipboardList size={18} />
+            <Link to="/tasks" className={getNavLinkClass("/tasks")}>
+              <ClipboardList size={15} />
               Tasks
             </Link>
 
-            {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
-              <Link
-                to="/users"
-                className={`flex items-center gap-3 px-3 py-3 text-[13px] rounded-lg border-l-[3px] transition-all duration-200 ${
-                  location.pathname === "/users"
-                    ? "border-[#5a4bcc] bg-[rgba(90,75,204,0.08)] text-[#1a1a1a]"
-                    : "border-transparent text-[#666] hover:text-[#1a1a1a] hover:bg-[#f3f4f6]"
-                }`}
-              >
-                <Users size={18} />
-                {user?.role === "MANAGER" ? "My Team" : "Users"}
-              </Link>
+            <Link to="/leaves" className={getNavLinkClass("/leaves")}>
+              <Calendar size={15} />
+              Leaves
+            </Link>
+
+            {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" || user?.role === "MANAGER" || user?.role === "HR") && (
+              <>
+                <span className="section-label px-2.5 mb-1.5 block mt-4">
+                  Management
+                </span>
+                
+                <Link to="/users" className={getNavLinkClass("/users")}>
+                  <Users size={15} />
+                  {user?.role === "MANAGER" ? "My Team" : "Users"}
+                </Link>
+
+                <Link to="/settings" className={getNavLinkClass("/settings")}>
+                  <Settings size={15} />
+                  Settings
+                </Link>
+              </>
             )}
           </nav>
         </div>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-[#e5e7eb]">
-          <div className="flex items-center gap-3">
-            {/* Avatar */}
-            <div className="w-[34px] h-[34px] rounded-full bg-gradient-to-br from-[#a082ff] to-[#6b4eff] flex items-center justify-center text-white text-[12px] font-semibold">
+        {/* User Block */}
+        <div className="p-3 border-t-hairline bg-[#f8f8fb] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 overflow-hidden">
+            {/* Avatar Circle */}
+            <div className="w-[28px] h-[28px] rounded-full bg-[#4f46e5] flex items-center justify-center text-white text-[11px] font-semibold shrink-0">
               {user?.name?.charAt(0)?.toUpperCase()}
             </div>
 
-            <div>
-              <p className="text-[13px] text-[#1a1a1a] font-medium">
+            <div className="overflow-hidden">
+              <p className="text-[11px] text-[#1e1b4b] font-medium truncate leading-tight">
                 {user?.name}
               </p>
 
-              <p className="font-mono text-[10px] text-[#666] uppercase">
+              <p className="font-mono-data text-[8px] text-[#4338ca] uppercase truncate mt-0.5">
                 {user?.role}
               </p>
             </div>
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="text-[#6b7280] hover:text-red-500 transition shrink-0"
+            title="Sign Out"
+          >
+            <LogOut size={14} />
+          </button>
         </div>
       </aside>
+
+      <Pomodoro />
+      <WorkspaceChat />
     </>
   );
 }

@@ -1,4 +1,5 @@
 const prisma = require("../utils/prisma");
+const { logActivity } = require("../utils/activityLogger");
 
 const createTask = async (req, res) => {
   try {
@@ -8,13 +9,13 @@ const createTask = async (req, res) => {
       priority,
       dueDate,
       assignedToId,
+      tags,
     } = req.body;
 
     // Validate assignedToId based on user role
     if (assignedToId !== undefined && assignedToId !== null && assignedToId !== "") {
       const assignedIdNum = Number(assignedToId);
 
-      // Prisma expects Int for `where.id`
       if (!Number.isInteger(assignedIdNum)) {
         return res
           .status(400)
@@ -34,12 +35,10 @@ const createTask = async (req, res) => {
         return res.status(403).json({ message: "Cannot assign tasks to users from another tenant" });
       }
 
-      // Manager can only assign tasks to MEMBERs
-      if (req.user.role === "MANAGER" && assignedUser.role !== "MEMBER") {
-        return res.status(403).json({ message: "Managers can only assign tasks to team members (MEMBER role)" });
+      // Manager can only assign tasks to team members (DEVELOPER, QA, DESIGNER, MEMBER)
+      if (req.user.role === "MANAGER" && !["DEVELOPER", "QA", "DESIGNER", "MEMBER"].includes(assignedUser.role)) {
+        return res.status(403).json({ message: "Managers can only assign tasks to team members (DEVELOPER, QA, DESIGNER, MEMBER roles)" });
       }
-
-        // Admin can assign to any user in the tenant (no additional restriction needed)
     }
 
     const assignedToIdNum =
@@ -53,12 +52,16 @@ const createTask = async (req, res) => {
         description,
         priority,
         dueDate: new Date(dueDate),
-
         createdById: req.user.id,
-
         assignedToId: assignedToIdNum,
-
         tenantId: req.user.tenantId,
+        tags: {
+          create: (tags || []).map((t) => ({
+            name: t.name,
+            color: t.color || "#4f46e5",
+            tenantId: req.user.tenantId,
+          })),
+        },
       },
       select: {
         id: true,
@@ -69,9 +72,28 @@ const createTask = async (req, res) => {
         dueDate: true,
         createdById: true,
         assignedToId: true,
+        timeSpent: true,
         createdAt: true,
         updatedAt: true,
+        tags: true,
       },
+    });
+
+    if (task.assignedToId) {
+      await prisma.notification.create({
+        data: {
+          message: `New task assigned to you: "${task.title}"`,
+          userId: task.assignedToId,
+          tenantId: req.user.tenantId,
+        },
+      }).catch(console.error);
+    }
+
+    await logActivity({
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      type: "TASK_CREATED",
+      description: `created task "${task.title}"`,
     });
 
     res.status(201).json(task);
@@ -86,7 +108,7 @@ const getTasks = async (req, res) => {
   try {
     let tasks;
 
-    if (req.user.role === "MEMBER") {
+    if (["DEVELOPER", "QA", "DESIGNER", "MEMBER"].includes(req.user.role)) {
       tasks = await prisma.task.findMany({
         where: {
           assignedToId: req.user.id,
@@ -101,8 +123,10 @@ const getTasks = async (req, res) => {
           dueDate: true,
           createdById: true,
           assignedToId: true,
+          timeSpent: true,
           createdAt: true,
           updatedAt: true,
+          tags: true,
         },
       });
     } else {
@@ -119,8 +143,10 @@ const getTasks = async (req, res) => {
           dueDate: true,
           createdById: true,
           assignedToId: true,
+          timeSpent: true,
           createdAt: true,
           updatedAt: true,
+          tags: true,
         },
       });
     }
@@ -149,8 +175,10 @@ const getTaskById = async (req, res) => {
         dueDate: true,
         createdById: true,
         assignedToId: true,
+        timeSpent: true,
         createdAt: true,
         updatedAt: true,
+        tags: true,
       },
     });
 
@@ -187,10 +215,27 @@ const updateTask = async (req, res) => {
 
     let updatedData = {};
 
-    if (req.user.role === "MEMBER") {
+    if (["DEVELOPER", "QA", "DESIGNER", "MEMBER"].includes(req.user.role)) {
       updatedData.status = req.body.status;
     } else {
-      updatedData = req.body;
+      const { tags, ...rest } = req.body;
+      updatedData = rest;
+
+      if (tags !== undefined) {
+        await prisma.tag.deleteMany({ where: { taskId } });
+        updatedData.tags = {
+          create: (tags || []).map((t) => ({
+            name: t.name,
+            color: t.color || "#4f46e5",
+            tenantId: req.user.tenantId,
+          })),
+        };
+      }
+    }
+
+    // Parse dueDate correctly if updated
+    if (updatedData.dueDate) {
+      updatedData.dueDate = new Date(updatedData.dueDate);
     }
 
     const updatedTask = await prisma.task.update({
@@ -207,9 +252,28 @@ const updateTask = async (req, res) => {
         dueDate: true,
         createdById: true,
         assignedToId: true,
+        timeSpent: true,
         createdAt: true,
         updatedAt: true,
+        tags: true,
       },
+    });
+
+    if (updatedTask.assignedToId) {
+      await prisma.notification.create({
+        data: {
+          message: `Task updated: "${updatedTask.title}" has status ${updatedTask.status}`,
+          userId: updatedTask.assignedToId,
+          tenantId: req.user.tenantId,
+        },
+      }).catch(console.error);
+    }
+
+    await logActivity({
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      type: "TASK_UPDATED",
+      description: `updated task "${updatedTask.title}"`,
     });
 
     res.status(200).json(updatedTask);
@@ -235,22 +299,23 @@ const deleteTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // Check if task has comments
-    const commentCount = await prisma.comment.count({
-      where: { taskId: taskId }
-    });
-
-    if (commentCount > 0) {
-      // Delete comments first
-      await prisma.comment.deleteMany({
-        where: { taskId: taskId }
-      });
-    }
+    // Delete related entities first
+    await prisma.comment.deleteMany({ where: { taskId } });
+    await prisma.tag.deleteMany({ where: { taskId } });
+    await prisma.subTask.deleteMany({ where: { taskId } });
+    await prisma.attachment.deleteMany({ where: { taskId } });
 
     await prisma.task.delete({
       where: {
         id: taskId,
       },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      type: "TASK_DELETED",
+      description: `deleted task "${existingTask.title}"`,
     });
 
     res.status(200).json({
@@ -264,10 +329,50 @@ const deleteTask = async (req, res) => {
   }
 };
 
+const updateTimeSpent = async (req, res) => {
+  try {
+    const taskId = parseInt(req.params.id);
+    const { timeSpent } = req.body;
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        tenantId: req.user.tenantId,
+      },
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const updatedTask = await prisma.task.update({
+      where: { id: taskId },
+      data: { timeSpent: parseInt(timeSpent, 10) },
+      select: {
+        id: true,
+        title: true,
+        timeSpent: true,
+      },
+    });
+
+    await logActivity({
+      userId: req.user.id,
+      tenantId: req.user.tenantId,
+      type: "TASK_UPDATED",
+      description: `tracked ${Math.round(timeSpent / 60)}m spent on task "${task.title}"`,
+    });
+
+    res.status(200).json(updatedTask);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createTask,
   getTasks,
   getTaskById,
   updateTask,
   deleteTask,
+  updateTimeSpent,
 };

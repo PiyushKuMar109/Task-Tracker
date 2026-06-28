@@ -26,8 +26,8 @@ const signup = async (req, res) => {
       });
     }
 
-    // Prisma enum(Role) expects: SUPER_ADMIN | ADMIN | MANAGER | MEMBER
-    const allowedRoles = ["SUPER_ADMIN", "ADMIN", "MANAGER", "MEMBER"];
+    // Prisma enum(Role) expects: SUPER_ADMIN | ADMIN | MANAGER | HR | DEVELOPER | QA | DESIGNER | MEMBER
+    const allowedRoles = ["SUPER_ADMIN", "ADMIN", "MANAGER", "HR", "DEVELOPER", "QA", "DESIGNER", "MEMBER"];
     const normalizedRole =
       typeof role === "string" ? role.toUpperCase() : undefined;
 

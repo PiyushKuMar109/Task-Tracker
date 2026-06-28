@@ -16,37 +16,48 @@ model Tenant {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            Int            @id @default(autoincrement())
   name          String
-  email         String    @unique
+  email         String         @unique
   password      String
-  role          Role      @default(MEMBER)
+  role          Role           @default(MEMBER)
   tenantId      String
-  tenant        Tenant    @relation(fields: [tenantId], references: [tenantId])
+  tenant        Tenant         @relation(fields: [tenantId], references: [tenantId])
   managerId     Int?
-  createdAt     DateTime  @default(now())
+  createdAt     DateTime       @default(now())
   comments      Comment[]
-  assignedTasks Task[]    @relation("AssignedTasks")
-  createdTasks  Task[]    @relation("CreatedTasks")
-  manager       User?     @relation("ManagedUsers", fields: [managerId], references: [id])
-  teamMembers   User[]    @relation("ManagedUsers")
+  assignedTasks Task[]         @relation("AssignedTasks")
+  createdTasks  Task[]         @relation("CreatedTasks")
+  manager       User?          @relation("ManagedUsers", fields: [managerId], references: [id])
+  teamMembers   User[]         @relation("ManagedUsers")
+  leaves        LeaveRequest[] @relation("UserLeaves")
+  approvedLeaves LeaveRequest[] @relation("ApprovedLeaves")
+  activities    Activity[]
+  memos         Memo[]
+  chatMessages  ChatMessage[]
+  notifications Notification[]
+  apiKeys       ApiKey[]
 }
 
 model Task {
-  id           Int       @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   title        String
   description  String
   priority     String
-  status       Status    @default(TODO)
+  status       Status       @default(TODO)
   dueDate      DateTime
   tenantId     String
   createdById  Int
   assignedToId Int
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  timeSpent    Int          @default(0)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   comments     Comment[]
-  assignedTo   User      @relation("AssignedTasks", fields: [assignedToId], references: [id])
-  createdBy    User      @relation("CreatedTasks", fields: [createdById], references: [id])
+  assignedTo   User         @relation("AssignedTasks", fields: [assignedToId], references: [id])
+  createdBy    User         @relation("CreatedTasks", fields: [createdById], references: [id])
+  attachments  Attachment[]
+  subTasks     SubTask[]
+  tags         Tag[]
 }
 
 model Comment {
@@ -64,6 +75,10 @@ enum Role {
   SUPER_ADMIN
   ADMIN
   MANAGER
+  HR
+  DEVELOPER
+  QA
+  DESIGNER
   MEMBER
 }
 
@@ -71,4 +86,113 @@ enum Status {
   TODO
   IN_PROGRESS
   DONE
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LeaveRequest {
+  id           Int         @id @default(autoincrement())
+  startDate    DateTime
+  endDate      DateTime
+  reason       String
+  status       LeaveStatus @default(PENDING)
+  tenantId     String
+  userId       Int
+  user         User        @relation("UserLeaves", fields: [userId], references: [id])
+  approvedById Int?
+  approvedBy   User?       @relation("ApprovedLeaves", fields: [approvedById], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  description String
+  type        String
+  tenantId    String
+  userId      Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Memo {
+  id        Int      @id @default(autoincrement())
+  text      String
+  completed Boolean  @default(false)
+  tenantId  String
+  userId      Int
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model ChatMessage {
+  id        Int      @id @default(autoincrement())
+  message   String
+  tenantId  String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        Int      @id @default(autoincrement())
+  fileName  String
+  fileType  String
+  fileData  String   // Base64 encoded string data
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tenantId  String
+  createdAt DateTime @default(now())
+}
+
+model SubTask {
+  id        Int      @id @default(autoincrement())
+  title     String
+  completed Boolean  @default(false)
+  taskId    Int
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tenantId  String
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  message   String
+  isRead    Boolean  @default(false)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId  String
+  createdAt DateTime @default(now())
+}
+
+model TenantSetting {
+  id                  Int      @id @default(autoincrement())
+  tenantId            String   @unique
+  companyName         String   @default("Task Tracker Workspace")
+  maxLeavesPerYear    Int      @default(30)
+  standardHoursPerWeek Int     @default(40)
+  updatedAt           DateTime @updatedAt
+}
+
+model ApiKey {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  name      String
+  tenantId  String
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id       Int    @id @default(autoincrement())
+  name     String
+  color    String @default("#4f46e5")
+  taskId   Int
+  task     Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tenantId String
 }

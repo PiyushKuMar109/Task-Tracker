@@ -5,6 +5,9 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Tasks from "./pages/Tasks";
 import Users from "./pages/Users";
+import Leaves from "./pages/Leaves";
+import CalendarPage from "./pages/CalendarPage";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -38,6 +41,21 @@ function App() {
       <Route
         path="/users"
         element={<Users />}
+      />
+
+      <Route
+        path="/leaves"
+        element={<Leaves />}
+      />
+
+      <Route
+        path="/calendar"
+        element={<CalendarPage />}
+      />
+
+      <Route
+        path="/settings"
+        element={<Settings />}
       />
 
     </Routes>

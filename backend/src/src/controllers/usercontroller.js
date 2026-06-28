@@ -14,7 +14,7 @@ const getUsers = async (req, res) => {
           role: true,
         },
       });
-    } else if (req.user.role === "ADMIN") {
+    } else if (req.user.role === "ADMIN" || req.user.role === "HR") {
       // ADMIN can see all users in their tenant only with manager info
       users = await prisma.user.findMany({
         where: {
@@ -88,12 +88,12 @@ const addUser = async (req, res) => {
       }
     }
     
-    // Managers can only create MEMBERs, ADMINs can create ADMIN/MANAGER/MEMBER
+    // Managers can create team members (DEVELOPER, QA, DESIGNER, MEMBER), ADMIN/HR can create anyone
     let allowedRoles;
     if (req.user.role === "MANAGER") {
-      allowedRoles = ["MEMBER"];
-    } else if (req.user.role === "ADMIN" || req.user.role === "SUPER_ADMIN") {
-      allowedRoles = ["ADMIN", "MANAGER", "MEMBER"];
+      allowedRoles = ["DEVELOPER", "QA", "DESIGNER", "MEMBER"];
+    } else if (req.user.role === "ADMIN" || req.user.role === "SUPER_ADMIN" || req.user.role === "HR") {
+      allowedRoles = ["ADMIN", "MANAGER", "HR", "DEVELOPER", "QA", "DESIGNER", "MEMBER"];
     } else {
       return res.status(403).json({ message: "You do not have permission to add users" });
     }
@@ -185,8 +185,8 @@ const getUsersForAssignment = async (req, res) => {
           role: true,
         },
       });
-    } else if (req.user.role === "ADMIN") {
-      // ADMIN can assign tasks to any user in their tenant
+    } else if (req.user.role === "ADMIN" || req.user.role === "HR") {
+      // ADMIN and HR can assign tasks to any user in their tenant
       users = await prisma.user.findMany({
         where: {
           tenantId: req.user.tenantId,
@@ -199,11 +199,13 @@ const getUsersForAssignment = async (req, res) => {
         },
       });
     } else if (req.user.role === "MANAGER") {
-      // Manager can only assign tasks to MEMBERs in their tenant (their team)
+      // Manager can assign tasks to team members of type DEVELOPER, QA, DESIGNER, or MEMBER in their tenant
       users = await prisma.user.findMany({
         where: {
           tenantId: req.user.tenantId,
-          role: "MEMBER",
+          role: {
+            in: ["DEVELOPER", "QA", "DESIGNER", "MEMBER"],
+          },
         },
         select: {
           id: true,

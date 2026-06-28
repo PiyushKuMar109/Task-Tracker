@@ -1,7 +1,4 @@
-
-import React, { useEffect, useState, useContext } from "react";
-
-
+import { useEffect, useState, useContext } from "react";
 import API from "../api/axios";
 
 import Navbar from "../components/Navbar";
@@ -9,14 +6,16 @@ import Sidebar from "../components/Sidebar";
 
 import { AuthContext } from "../context/AuthContext";
 import { Navigate } from "react-router-dom";
+import { Users as UsersIcon, Shield, Briefcase, UserCheck } from "lucide-react";
 
 export default function Users() {
   const { user } = useContext(AuthContext);
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "MEMBER" });
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "MEMBER" });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all"); // "all", "managers", "members"
 
@@ -32,10 +31,9 @@ export default function Users() {
   };
 
   useEffect(() => {
-    if (user?.role === "ADMIN" || user?.role === "MANAGER") {
+    if (["ADMIN", "SUPER_ADMIN", "HR", "MANAGER"].includes(user?.role)) {
       fetchUsers();
     }
-    // eslint-disable-next-line
   }, []);
 
   const handleInputChange = (e) => {
@@ -68,330 +66,281 @@ export default function Users() {
   };
 
   const filteredUsers = users.filter((u) => {
-    if (user?.role === "ADMIN") {
+    if (["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role)) {
       if (activeTab === "managers") return u.role === "MANAGER";
-      if (activeTab === "members") return u.role === "MEMBER";
+      if (activeTab === "members") return !["ADMIN", "MANAGER", "SUPER_ADMIN", "HR"].includes(u.role);
       return true; // all
     }
     return true; // for managers, show their team members
   });
 
-  if (user?.role !== "ADMIN" && user?.role !== "MANAGER") {
+  if (!["ADMIN", "SUPER_ADMIN", "HR", "MANAGER"].includes(user?.role)) {
     return <Navigate to="/dashboard" />;
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center text-[#1a1a1a]">
-        Loading Users...
+      <div className="min-h-screen bg-white flex items-center justify-center text-slate-650 text-xs font-mono-data animate-pulse">
+        Loading Users Directory...
       </div>
     );
   }
 
-  const admins = users.filter((u) => u.role === "ADMIN").length;
+  const admins = users.filter((u) => u.role === "ADMIN" || u.role === "SUPER_ADMIN").length;
   const managers = users.filter((u) => u.role === "MANAGER").length;
-  const members = users.filter((u) => u.role === "MEMBER").length;
+  const members = users.filter((u) => !["ADMIN", "MANAGER", "SUPER_ADMIN", "HR"].includes(u.role)).length;
 
   return (
-    <div className="min-h-screen flex bg-[#f9fafb] text-[#1a1a1a]">
+    <div className="min-h-screen flex bg-white text-[#1e1b4b]">
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-      />
+      <div className="flex-1 flex flex-col overflow-y-auto bg-white">
+        <Navbar setSidebarOpen={setSidebarOpen} />
 
-      <div className="flex-1 flex flex-col">
-
-        <Navbar
-          setSidebarOpen={setSidebarOpen}
-        />
-
-        <div className="p-6">
-
+        <div className="content-padding">
           {/* HEADER */}
+          <div className="mb-8">
+            <span className="section-label">
+              {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) ? "Administration Eyebrow" : "Team Eyebrow"}
+            </span>
 
-          <div className="mb-6">
-
-            <p className="text-[10px] uppercase tracking-[1.2px] text-[#555] mb-2">
-              {user?.role === "ADMIN" ? "Administration" : "Team"}
-            </p>
-
-            <h1 className="text-2xl font-semibold">
-              {user?.role === "ADMIN" ? "User Management" : "My Team"}
+            <h1 className="text-[20px] font-semibold text-[#1e1b4b] mt-1">
+              {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) ? "User Management" : "My Team"}
             </h1>
 
-            <p className="text-[#666] text-sm mt-1">
-              {user?.role === "ADMIN" ? "Manage users and workspace roles." : "View your team members."}
+            <p className="text-[#6b7280] text-[12px] mt-0.5">
+              {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) ? "Manage users and workspace roles." : "View your team members."}
             </p>
-
           </div>
 
-          {/* STATS */}
-
-          <div className="grid md:grid-cols-4 gap-4 mb-6">
-
-            <div className="bg-white border border-[#e5e7eb] rounded-[10px] p-4">
-              <p className="text-[#666] text-xs">
-                TOTAL USERS
-              </p>
-
-              <h2 className="text-2xl font-semibold mt-2">
-                {users.length}
-              </h2>
+          {/* STATS - 4 columns, left border signature stripe, DM Mono numbers */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-[14px] mb-8">
+            <div className="bg-white border-hairline rounded-[12px] p-4 flex justify-between items-center stripe-indigo shadow-none relative overflow-hidden">
+              <div>
+                <span className="section-label mb-1 block">Total Users</span>
+                <h2 className="font-mono-data text-[32px] font-bold text-[#4f46e5] leading-none">{users.length}</h2>
+              </div>
+              <div className="w-[32px] h-[32px] rounded-lg bg-[#ede9fe] flex items-center justify-center text-[#4f46e5]">
+                <UsersIcon size={15} />
+              </div>
             </div>
 
-            <div className="bg-white border border-[#e5e7eb] rounded-[10px] p-4">
-              <p className="text-[#666] text-xs">
-                ADMINS
-              </p>
-
-              <h2 className="text-2xl font-semibold mt-2 text-red-400">
-                {admins}
-              </h2>
+            <div className="bg-white border-hairline rounded-[12px] p-4 flex justify-between items-center stripe-amber shadow-none relative overflow-hidden">
+              <div>
+                <span className="section-label mb-1 block">Admins</span>
+                <h2 className="font-mono-data text-[32px] font-bold text-[#f59e0b] leading-none">{admins}</h2>
+              </div>
+              <div className="w-[32px] h-[32px] rounded-lg bg-[#fef3c7] flex items-center justify-center text-[#f59e0b]">
+                <Shield size={15} />
+              </div>
             </div>
 
-            <div className="bg-white border border-[#e5e7eb] rounded-[10px] p-4">
-              <p className="text-[#666] text-xs">
-                MANAGERS
-              </p>
-
-              <h2 className="text-2xl font-semibold mt-2 text-yellow-400">
-                {managers}
-              </h2>
+            <div className="bg-white border-hairline rounded-[12px] p-4 flex justify-between items-center stripe-indigo shadow-none relative overflow-hidden">
+              <div>
+                <span className="section-label mb-1 block">Managers</span>
+                <h2 className="font-mono-data text-[32px] font-bold text-[#4f46e5] leading-none">{managers}</h2>
+              </div>
+              <div className="w-[32px] h-[32px] rounded-lg bg-[#ede9fe] flex items-center justify-center text-[#4f46e5]">
+                <Briefcase size={15} />
+              </div>
             </div>
 
-            <div className="bg-white border border-[#e5e7eb] rounded-[10px] p-4">
-              <p className="text-[#666] text-xs">
-                MEMBERS
-              </p>
-
-              <h2 className="text-2xl font-semibold mt-2 text-green-400">
-                {members}
-              </h2>
+            <div className="bg-white border-hairline rounded-[12px] p-4 flex justify-between items-center stripe-emerald shadow-none relative overflow-hidden">
+              <div>
+                <span className="section-label mb-1 block">Members</span>
+                <h2 className="font-mono-data text-[32px] font-bold text-[#10b981] leading-none">{members}</h2>
+              </div>
+              <div className="w-[32px] h-[32px] rounded-lg bg-[#d1fae5] flex items-center justify-center text-[#10b981]">
+                <UserCheck size={15} />
+              </div>
             </div>
-
           </div>
 
-          {/* TABS FOR ADMIN TO SEPARATE MANAGERS AND MEMBERS */}
-          {user?.role === "ADMIN" && (
-            <div className="flex gap-2 mb-6">
-              <button
-                onClick={() => setActiveTab("all")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                  activeTab === "all"
-                    ? "bg-[#5a4bcc] text-white"
-                    : "bg-white border border-[#e5e7eb] text-[#666] hover:bg-[#f3f4f6]"
-                }`}
-              >
-                All Users
-              </button>
-              <button
-                onClick={() => setActiveTab("managers")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                  activeTab === "managers"
-                    ? "bg-[#5a4bcc] text-white"
-                    : "bg-white border border-[#e5e7eb] text-[#666] hover:bg-[#f3f4f6]"
-                }`}
-              >
-                Managers
-              </button>
-              <button
-                onClick={() => setActiveTab("members")}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                  activeTab === "members"
-                    ? "bg-[#5a4bcc] text-white"
-                    : "bg-white border border-[#e5e7eb] text-[#666] hover:bg-[#f3f4f6]"
-                }`}
-              >
-                Members
-              </button>
+          {/* TABS FOR ADMIN */}
+          {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) && (
+            <div className="mb-6">
+              <div className="tab-toggle-container">
+                <button
+                  onClick={() => setActiveTab("all")}
+                  className={`tab-toggle-item ${activeTab === "all" ? "active" : ""}`}
+                >
+                  All Users
+                </button>
+                <button
+                  onClick={() => setActiveTab("managers")}
+                  className={`tab-toggle-item ${activeTab === "managers" ? "active" : ""}`}
+                >
+                  Managers
+                </button>
+                <button
+                  onClick={() => setActiveTab("members")}
+                  className={`tab-toggle-item ${activeTab === "members" ? "active" : ""}`}
+                >
+                  Members & Staff
+                </button>
+              </div>
             </div>
           )}
 
-          {/* ADD USER FORM (ADMIN AND MANAGER) */}
-          {(user?.role === "ADMIN" || user?.role === "MANAGER") && (
-          <div className="bg-white border border-[#e5e7eb] rounded-[10px] p-5 mb-6">
-            <p className="text-[10px] uppercase tracking-[1.2px] text-[#555] mb-4">
-              Add New User
-            </p>
-            <form onSubmit={handleAddUser} className="flex flex-wrap gap-4 items-end">
-              <div className="flex-1 min-w-[200px]">
-                <label className="block text-xs text-[#666] mb-1">Name</label>
-                <input 
-                  name="name" 
-                  value={form.name} 
-                  onChange={handleInputChange} 
-                  required 
-                  className="w-full bg-white border border-[#e5e7eb] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#5a4bcc]" 
-                />
-              </div>
-              <div className="flex-1 min-w-[200px]">
-                <label className="block text-xs text-[#666] mb-1">Email</label>
-                <input 
-                  name="email" 
-                  value={form.email} 
-                  onChange={handleInputChange} 
-                  type="email" 
-                  required 
-                  className="w-full bg-white border border-[#e5e7eb] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#5a4bcc]" 
-                />
-              </div>
-              <div className="flex-1 min-w-[150px]">
-                <label className="block text-xs text-[#666] mb-1">Password</label>
-                <input 
-                  name="password" 
-                  value={form.password} 
-                  onChange={handleInputChange} 
-                  type="password" 
-                  required 
-                  className="w-full bg-white border border-[#e5e7eb] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#5a4bcc]" 
-                />
-              </div>
-              <div className="w-[150px]">
-                <label className="block text-xs text-[#666] mb-1">Role</label>
-                <select 
-                  name="role" 
-                  value={form.role} 
-                  onChange={handleInputChange} 
-                  className="w-full bg-white border border-[#e5e7eb] rounded-md px-3 py-2 text-sm focus:outline-none focus:border-[#5a4bcc]"
+          {/* ADD USER FORM */}
+          {["ADMIN", "SUPER_ADMIN", "HR", "MANAGER"].includes(user?.role) && (
+            <div className="bg-white border-hairline rounded-[12px] p-5 mb-6">
+              <span className="section-label mb-4 block">Add New User</span>
+              
+              <form onSubmit={handleAddUser} className="flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
+                  <label className="text-[11px] text-[#6b7280] font-semibold">Name</label>
+                  <input 
+                    name="name" 
+                    placeholder="Full name"
+                    value={form.name} 
+                    onChange={handleInputChange} 
+                    required 
+                    className="w-full bg-[#f9fafb] border-hairline rounded-[7px] px-3 py-2 text-xs" 
+                  />
+                </div>
+
+                <div className="flex-1 min-w-[200px] flex flex-col gap-1.5">
+                  <label className="text-[11px] text-[#6b7280] font-semibold">Email</label>
+                  <input 
+                    name="email" 
+                    placeholder="email@company.com"
+                    value={form.email} 
+                    onChange={handleInputChange} 
+                    type="email" 
+                    required 
+                    className="w-full bg-[#f9fafb] border-hairline rounded-[7px] px-3 py-2 text-xs" 
+                  />
+                </div>
+
+                <div className="flex-1 min-w-[150px] flex flex-col gap-1.5">
+                  <label className="text-[11px] text-[#6b7280] font-semibold">Password</label>
+                  <input 
+                    name="password" 
+                    placeholder="••••••••"
+                    value={form.password} 
+                    onChange={handleInputChange} 
+                    type="password" 
+                    required 
+                    className="w-full bg-[#f9fafb] border-hairline rounded-[7px] px-3 py-2 text-xs" 
+                  />
+                </div>
+
+                <div className="w-[150px] flex flex-col gap-1.5">
+                  <label className="text-[11px] text-[#6b7280] font-semibold">Role</label>
+                  <select 
+                    name="role" 
+                    value={form.role} 
+                    onChange={handleInputChange} 
+                    className="w-full bg-[#f9fafb] border-hairline rounded-[7px] px-3 py-2 text-xs"
+                  >
+                    {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) ? (
+                      <>
+                        <option value="MEMBER">MEMBER</option>
+                        <option value="DEVELOPER">DEVELOPER</option>
+                        <option value="QA">QA</option>
+                        <option value="DESIGNER">DESIGNER</option>
+                        <option value="HR">HR</option>
+                        <option value="MANAGER">MANAGER</option>
+                        <option value="ADMIN">ADMIN</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="MEMBER">MEMBER</option>
+                        <option value="DEVELOPER">DEVELOPER</option>
+                        <option value="QA">QA</option>
+                        <option value="DESIGNER">DESIGNER</option>
+                      </>
+                    )}
+                  </select>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={adding} 
+                  className="primary-btn px-6 py-2 transition"
                 >
-                  {user?.role === "ADMIN" ? (
-                    <>
-                      <option value="ADMIN">ADMIN</option>
-                      <option value="MANAGER">MANAGER</option>
-                      <option value="MEMBER">MEMBER</option>
-                    </>
-                  ) : (
-                    <option value="MEMBER">MEMBER</option>
-                  )}
-                </select>
-              </div>
-              <button 
-                type="submit" 
-                disabled={adding} 
-                className="bg-[#5a4bcc] hover:bg-[#6b5ce7] text-white px-6 py-2 rounded-md text-sm font-medium transition disabled:opacity-60"
-              >
-                {adding ? "Adding..." : "Add User"}
-              </button>
-              {error && <span className="text-red-500 text-xs">{error}</span>}
-            </form>
-          </div>
+                  {adding ? "Adding..." : "Add User"}
+                </button>
+
+                {error && <span className="text-red-500 text-xs w-full mt-2 font-mono-data">{error}</span>}
+              </form>
+            </div>
           )}
 
           {/* USERS TABLE */}
-
-          <div className="bg-white border border-[#e5e7eb] rounded-[10px] overflow-hidden">
-
+          <div className="bg-white border-hairline rounded-[12px] overflow-hidden">
             {users.length === 0 ? (
-
-              <div className="p-12 text-center">
-
-                <div className="text-5xl mb-4">
-                  👥
-                </div>
-
-                <h2 className="text-lg font-medium">
-                  No Users Found
-                </h2>
-
-                <p className="text-[#666] text-sm mt-2">
-                  Registered users will appear here.
-                </p>
-
+              <div className="p-12 text-center text-[#9ca3af] text-xs font-mono-data">
+                No users registered.
               </div>
-
             ) : (
-
               <div className="overflow-x-auto">
-
-                <table className="w-full">
-
-                  <thead className="border-b border-[#e5e7eb]">
-
-                    <tr>
-
-                      <th className="text-left px-5 py-4 text-xs text-[#666]">
-                        USER
-                      </th>
-
-                      <th className="text-left px-5 py-4 text-xs text-[#666]">
-                        EMAIL
-                      </th>
-
-                      <th className="text-left px-5 py-4 text-xs text-[#666]">
-                        ROLE
-                      </th>
-
-                      <th className="text-left px-5 py-4 text-xs text-[#666]">
-                        ID
-                      </th>
-
-
-                      {user?.role === "ADMIN" && (
-                        <th className="text-left px-5 py-4 text-xs text-[#666]">
-                          MANAGER
-                        </th>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b-hairline bg-[#f8f8fb] text-[10px] font-bold text-[#9ca3af] uppercase tracking-wider font-mono-data">
+                      <th className="text-left px-5 py-3 font-medium">User</th>
+                      <th className="text-left px-5 py-3 font-medium">Email</th>
+                      <th className="text-left px-5 py-3 font-medium">Role</th>
+                      <th className="text-left px-5 py-3 font-medium">ID</th>
+                      {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) && (
+                        <th className="text-left px-5 py-3 font-medium">Manager</th>
                       )}
-
                       {user?.role === "MANAGER" && (
-                        <th className="text-left px-5 py-4 text-xs text-[#666]">
-                          MANAGER ID
-                        </th>
+                        <th className="text-left px-5 py-3 font-medium">Manager ID</th>
                       )}
-
-                      <th className="text-left px-5 py-4 text-xs text-[#666]">
-                        ACTIONS
-                      </th>
-
+                      <th className="text-right px-5 py-3 font-medium">Actions</th>
                     </tr>
-
                   </thead>
 
-                  <tbody>
-
+                  <tbody className="divide-y divide-[#e8e8f0] text-[12px]">
                     {filteredUsers.map((u) => (
-                      <tr
-                        key={u.id}
-                        className="border-b border-[#e5e7eb] hover:bg-[#f3f4f6]"
-                      >
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div
-                              className="w-8 h-8 rounded-full bg-gradient-to-br from-[#a082ff] to-[#6b4eff] flex items-center justify-center text-white text-xs font-semibold"
-                            >
-                              {u.name?.charAt(0)}
+                      <tr key={u.id} className="hover:bg-[#fafafa] transition-colors">
+                        {/* User */}
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-[26px] h-[26px] rounded-full bg-[#4f46e5] flex items-center justify-center text-white text-[11px] font-bold shrink-0">
+                              {u.name?.charAt(0)?.toUpperCase()}
                             </div>
-                            <div>
-                              <p className="text-sm">{u.name}</p>
-                            </div>
+                            <div className="font-semibold text-[#1e1b4b] truncate">{u.name}</div>
                           </div>
                         </td>
-                        <td className="px-5 py-4 text-sm text-[#666]">{u.email}</td>
-                        <td className="px-5 py-4">
+
+                        {/* Email */}
+                        <td className="px-5 py-3.5 text-[#6b7280]">{u.email}</td>
+
+                        {/* Role Badge */}
+                        <td className="px-5 py-3.5">
                           <span
-                            className={`px-2 py-1 rounded text-[10px] font-semibold border ${
-                              u.role === "ADMIN"
-                                ? "bg-[#ffebee] text-red-600 border-[#ef9a9a]"
+                            className={`badge ${
+                              u.role === "ADMIN" || u.role === "SUPER_ADMIN"
+                                ? "badge-high"
                                 : u.role === "MANAGER"
-                                ? "bg-[#fff8e1] text-yellow-600 border-[#e6d5a0]"
-                                : "bg-[#e8f5e9] text-green-600 border-[#a5d6a7]"
+                                ? "badge-progress"
+                                : "badge-done"
                             }`}
                           >
                             {u.role}
                           </span>
                         </td>
-                        <td className="px-5 py-4 text-[#666] text-sm">#{u.id}</td>
-                        {user?.role === "ADMIN" && (
-                          <td className="px-5 py-4 text-[#666] text-sm">{u.manager?.name || "N/A"}</td>
+
+                        {/* ID */}
+                        <td className="px-5 py-3.5 text-[#9ca3af] font-mono-data">#{u.id}</td>
+
+                        {/* Manager */}
+                        {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) && (
+                          <td className="px-5 py-3.5 text-[#6b7280]">{u.manager?.name || "N/A"}</td>
                         )}
                         {user?.role === "MANAGER" && (
-                          <td className="px-5 py-4 text-[#666] text-sm">#{u.managerId || "N/A"}</td>
+                          <td className="px-5 py-3.5 text-[#9ca3af] font-mono-data">#{u.managerId || "N/A"}</td>
                         )}
-                        <td className="px-5 py-4">
-                          {user?.role === "ADMIN" && user.id !== u.id && (
+
+                        {/* Actions */}
+                        <td className="px-5 py-3.5 text-right">
+                          {["ADMIN", "SUPER_ADMIN", "HR"].includes(user?.role) && user.id !== u.id && (
                             <button
                               onClick={() => handleDeleteUser(u.id)}
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs font-medium transition"
+                              className="secondary-btn danger-btn text-[10px] py-1 px-3 transition"
                             >
                               Delete
                             </button>
@@ -399,21 +348,13 @@ export default function Users() {
                         </td>
                       </tr>
                     ))}
-
                   </tbody>
-
                 </table>
-
               </div>
-
             )}
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 }

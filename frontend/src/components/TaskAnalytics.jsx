@@ -1,152 +1,129 @@
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-
 export default function TaskAnalytics({
   tasks,
 }) {
+  const completed = tasks.filter((task) => task.status === "DONE").length;
+  const progress = tasks.filter((task) => task.status === "IN_PROGRESS").length;
+  const todo = tasks.filter((task) => task.status === "TODO").length;
 
-  const completed =
-    tasks.filter(
-      (task) =>
-        task.status === "DONE"
-    ).length;
+  const total = completed + progress + todo;
 
-  const progress =
-    tasks.filter(
-      (task) =>
-        task.status ===
-        "IN_PROGRESS"
-    ).length;
+  // Percentage of completed tasks
+  const donePercent = total ? Math.round((completed / total) * 100) : 0;
 
-  const todo =
-    tasks.filter(
-      (task) =>
-        task.status === "TODO"
-    ).length;
+  // SVG dimensions & math
+  // Radius r = (110 - strokeWidth) / 2 = (110 - 16) / 2 = 47
+  const r = 47;
+  const strokeWidth = 16;
+  const circumference = 2 * Math.PI * r; // ~295.31
 
-  const data = [
-    {
-      name: "Done",
-      value: completed,
-    },
-    {
-      name: "Progress",
-      value: progress,
-    },
-    {
-      name: "Todo",
-      value: todo,
-    },
-  ];
+  const doneShare = total ? (completed / total) * circumference : 0;
+  const progressShare = total ? (progress / total) * circumference : 0;
+  const todoShare = total ? (todo / total) * circumference : 0;
 
-  const COLORS = [
-    "#4a9e6a",
-    "#c99a2e",
-    "#7b7e99",
-  ];
+  // Offsets
+  const doneOffset = 0;
+  const progressOffset = circumference - doneShare;
+  const todoOffset = circumference - doneShare - progressShare;
 
   return (
-    <div className="dark-card p-5">
-
+    <div>
       <div className="mb-5">
-
-        <p className="section-label">
-          Analytics
-        </p>
-
-        <h2 className="text-[16px] font-semibold text-[#1a1a1a] mt-2">
-          Task Distribution
-        </h2>
-
+        <span className="section-label">Analytics Eyebrow</span>
+        <h2 className="text-[14px] font-semibold text-[#1e1b4b] mt-1">Task Distribution</h2>
       </div>
 
-      <div className="h-[260px]">
-
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-        >
-
-          <PieChart>
-
-            <Pie
-              data={data}
-              dataKey="value"
-              outerRadius={85}
-              innerRadius={55}
-              paddingAngle={4}
-            >
-
-              {data.map(
-                (entry, index) => (
-
-                  <Cell
-                    key={index}
-                    fill={COLORS[index]}
-                  />
-
-                )
-              )}
-
-            </Pie>
-
-            <Tooltip
-              contentStyle={{
-                background:
-                  "#ffffff",
-                border:
-                  "1px solid #e5e7eb",
-                borderRadius: "8px",
-                color: "#1a1a1a",
-              }}
+      <div className="flex flex-col sm:flex-row items-center justify-around gap-6 py-4">
+        {/* SVG Donut Chart */}
+        <div className="relative w-[110px] h-[110px] shrink-0">
+          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 110 110">
+            {/* Gray base ring */}
+            <circle
+              cx="55"
+              cy="55"
+              r={r}
+              fill="transparent"
+              stroke="#f3f4f6"
+              strokeWidth={strokeWidth}
             />
 
-          </PieChart>
+            {/* Todo Segment (Gray) */}
+            {todoShare > 0 && (
+              <circle
+                cx="55"
+                cy="55"
+                r={r}
+                fill="transparent"
+                stroke="#6b7280"
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${todoShare} ${circumference - todoShare}`}
+                strokeDashoffset={todoOffset}
+                className="transition-all duration-500"
+              />
+            )}
 
-        </ResponsiveContainer>
+            {/* Progress Segment (Amber) */}
+            {progressShare > 0 && (
+              <circle
+                cx="55"
+                cy="55"
+                r={r}
+                fill="transparent"
+                stroke="#f59e0b"
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${progressShare} ${circumference - progressShare}`}
+                strokeDashoffset={progressOffset}
+                className="transition-all duration-500"
+              />
+            )}
 
+            {/* Done Segment (Emerald) */}
+            {doneShare > 0 && (
+              <circle
+                cx="55"
+                cy="55"
+                r={r}
+                fill="transparent"
+                stroke="#10b981"
+                strokeWidth={strokeWidth}
+                strokeDasharray={`${doneShare} ${circumference - doneShare}`}
+                strokeDashoffset={doneOffset}
+                className="transition-all duration-500"
+              />
+            )}
+          </svg>
+
+          {/* Center Overlay Text */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="font-mono-data text-[18px] font-bold text-[#1e1b4b]">
+              {donePercent}%
+            </span>
+            <span className="font-mono-data text-[9px] text-[#9ca3af] uppercase tracking-wider">
+              done
+            </span>
+          </div>
+        </div>
+
+        {/* Legend List */}
+        <div className="space-y-2.5">
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#10b981] shrink-0" />
+            <span className="text-[12px] text-[#6b7280] font-sans w-16">Done</span>
+            <span className="font-mono-data text-[12px] text-[#1e1b4b] font-bold">{completed}</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#f59e0b] shrink-0" />
+            <span className="text-[12px] text-[#6b7280] font-sans w-16">Progress</span>
+            <span className="font-mono-data text-[12px] text-[#1e1b4b] font-bold">{progress}</span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-[#6b7280] shrink-0" />
+            <span className="text-[12px] text-[#6b7280] font-sans w-16">Todo</span>
+            <span className="font-mono-data text-[12px] text-[#1e1b4b] font-bold">{todo}</span>
+          </div>
+        </div>
       </div>
-
-      {/* Legend */}
-      <div className="grid grid-cols-3 gap-3 mt-2">
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-3 h-3 rounded-full bg-[#4a9e6a]" />
-
-          <span className="text-[11px] text-[#666]">
-            Done
-          </span>
-
-        </div>
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-3 h-3 rounded-full bg-[#c99a2e]" />
-
-          <span className="text-[11px] text-[#666]">
-            Progress
-          </span>
-
-        </div>
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-3 h-3 rounded-full bg-[#7b7e99]" />
-
-          <span className="text-[11px] text-[#666]">
-            Todo
-          </span>
-
-        </div>
-
-      </div>
-
     </div>
   );
 }
